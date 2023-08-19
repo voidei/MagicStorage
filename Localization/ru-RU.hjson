@@ -418,6 +418,8 @@ Mods: {
 					LikeNPC_Princess: "{NPCName} - лучший друг моего создателя."
 					Princess_LovesNPC: "{NPCName} - такой классный робот, интересно , как он двигается?"
 				}
+
+				// Census.SpawnCondition: "No requirements"
 			}
 		}
 

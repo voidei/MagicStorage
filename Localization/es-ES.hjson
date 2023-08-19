@@ -429,6 +429,8 @@ Mods: {
 					LikeNPC_Princess: "{NPCName} es la mejor amiga de mi creador."
 					Princess_LovesNPC: "{NPCName} Es una máquina muy interesante, ¿cómo logra moverse?"
 				}
+
+				// Census.SpawnCondition: "No requirements"
 			}
 		}
 

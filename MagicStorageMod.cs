@@ -46,7 +46,7 @@ namespace MagicStorage {
 
 			//Census mod support
 			if (ModLoader.TryGetMod("Census", out var census)) {
-				census.Call("TownNPCCondition", ModContent.NPCType<Golem>(), "No requirements");
+				census.Call("TownNPCCondition", ModContent.NPCType<Golem>(), ModContent.GetInstance<Golem>().GetLocalization("Census.SpawnCondition").WithFormatArgs());
 			}
 
 			//Sorting options
