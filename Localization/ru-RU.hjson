@@ -419,7 +419,7 @@ Mods: {
 					Princess_LovesNPC: "{NPCName} - такой классный робот, интересно , как он двигается?"
 				}
 
-				// Census.SpawnCondition: "No requirements"
+				// Census.SpawnCondition: No requirements
 			}
 		}
 

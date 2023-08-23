@@ -415,7 +415,7 @@ Mods: {
 					// Princess_LovesNPC: "{NPCName} is such an interesting machine, how does it move?"
 				}
 
-				// Census.SpawnCondition: "No requirements"
+				// Census.SpawnCondition: No requirements
 			}
 		}
 
