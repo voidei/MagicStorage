@@ -1,4 +1,4 @@
-﻿using MagicStorage.Common.Systems;
+using MagicStorage.Common.Systems;
 using MagicStorage.Common.Systems.RecurrentRecipes;
 using MagicStorage.CrossMod;
 using MagicStorage.CrossMod.Control;
@@ -44,11 +44,6 @@ namespace MagicStorage {
 
 			InterfaceHelper.Initialize();
 
-			//Census mod support
-			if (ModLoader.TryGetMod("Census", out var census)) {
-				census.Call("TownNPCCondition", ModContent.NPCType<Golem>(), ModContent.GetInstance<Golem>().GetLocalization("Census.SpawnCondition").WithFormatArgs());
-			}
-
 			//Sorting options
 			SortingOptionLoader.Load();
 
@@ -79,6 +74,11 @@ namespace MagicStorage {
 			if (!Main.dedServ) {
 				optionsConfig = new();
 				optionsConfig.Initialize();
+			}
+
+			//Census mod support
+			if (ModLoader.TryGetMod("Census", out var census)) {
+				census.Call("TownNPCCondition", ModContent.NPCType<Golem>(), ModContent.GetInstance<Golem>().GetLocalization("Census.SpawnCondition"));
 			}
 
 			SortingOptionLoader.InitializeOrder();
