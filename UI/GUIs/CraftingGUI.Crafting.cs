@@ -13,6 +13,8 @@ namespace MagicStorage {
 		private class CraftingContext {
 			public List<Item> sourceItems, availableItems, toWithdraw, results;
 
+			public Dictionary<int, int> itemCounts;
+
 			public List<bool> fromModule;
 
 			public EnvironmentSandbox sandbox;
@@ -24,6 +26,8 @@ namespace MagicStorage {
 			public int toCraft;
 
 			public bool simulation;
+
+			public Recipe recipe;
 
 			public IEnumerable<Item> ConsumedItems => toWithdraw.Concat(consumedItemsFromModules);
 		}
@@ -59,7 +63,7 @@ namespace MagicStorage {
 				if (context is null)
 					return;  // Bail
 			} else {
-				context = InitCraftingContext(toCraft);
+				context = InitCraftingContext(selectedRecipe, toCraft);
 
 				int target = toCraft;
 
@@ -112,7 +116,7 @@ namespace MagicStorage {
 			if (toCraft <= 0)
 				return null;  // Bail
 
-			CraftingContext context = InitCraftingContext(toCraft);
+			CraftingContext context = InitCraftingContext(recursiveRecipe.original, toCraft);
 
 			NetHelper.Report(true, "Attempting recurrent crafting...");
 
@@ -150,15 +154,23 @@ namespace MagicStorage {
 				List<Item> origResults = new(ctx.results);
 				List<Item> origFromModule = new(ctx.consumedItemsFromModules);
 
-				bool notEnoughItems = true;
+				bool skipItemConsumption = false;
 
 				foreach (int type in material.GetValidItems()) {
-					Item item = new Item(type, material.stack);
+					// Bug fix: only consume up to the amount of materials needed
+					if (!ctx.itemCounts.TryGetValue(type, out int quantity) || quantity <= 0) {
+						// Item was not present
+						continue;
+					}
+
+					int possibleStack = Math.Min(material.stack, quantity);
+
+					Item item = new Item(type, possibleStack);
 
 					if (!CanConsumeItem(ctx, item, origWithdraw, origResults, origFromModule, out bool wasAvailable, out int stackConsumed, checkRecipeGroup: false)) {
 						if (wasAvailable) {
 							NetHelper.Report(false, $"Skipping consumption of item \"{Lang.GetItemNameValue(item.type)}\"");
-							notEnoughItems = false;
+							skipItemConsumption = true;
 							break;
 						}
 					} else {
@@ -167,14 +179,14 @@ namespace MagicStorage {
 						item.stack = stackConsumed;
 						consumedItems.Add(item);
 
-						notEnoughItems = false;
+						ctx.itemCounts[type] -= stackConsumed;
 
 						if (material.stack <= 0)
 							break;
 					}
 				}
 
-				if (notEnoughItems) {
+				if (!skipItemConsumption && material.stack > 0) {
 					NetHelper.Report(false, $"Material requirement \"{Lang.GetItemNameValue(material.GetValidItems().First())}\" could not be met, aborting");
 					return;
 				}
@@ -196,6 +208,16 @@ namespace MagicStorage {
 				int stack = item.stack;
 				AttemptToConsumeItem(ctx, item.type, ref stack, checkRecipeGroup: false);
 			}
+
+			// Run the "on craft" logic for the final result, but with the SimulatingCrafts flag disabled this time
+			// (It should be false by this point, but it's forced back to false as a sanity check)
+			_simulatingCrafts = false;
+
+			CatchDroppedItems = true;
+			RecipeLoader.OnCraft(ctx.recipe.createItem, ctx.recipe, consumedItems, new Item());
+			// Dropped items were caught during the simulation; destroy them here
+			DroppedItems.Clear();
+			CatchDroppedItems = false;
 
 			NetHelper.Report(true, $"Success! Crafted {simulation.AmountCrafted} items and {simulation.ExcessResults.Count - 1} extra item types");
 		}
